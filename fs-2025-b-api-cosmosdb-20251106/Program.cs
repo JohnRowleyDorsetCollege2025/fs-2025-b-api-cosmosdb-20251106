@@ -1,3 +1,6 @@
+using fs_2025_b_api_cosmosdb_20251106.Models;
+using Microsoft.Azure.Cosmos;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Set up configuration to read from appsettings.json and environment variables
@@ -17,7 +20,7 @@ var container = await database.Database.CreateContainerIfNotExistsAsync(
         PartitionKeyPath = "/id"
     });
 
-
+builder.Services.AddSingleton(container.Container);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -35,29 +38,21 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+app.MapGet("/student", () => Results.Ok("ok"));
 
-app.MapGet("/weatherforecast", () =>
+
+app.MapGet("/insert", async (Container container) =>
 {
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+    var student = new Student
+    {
+        id = Guid.NewGuid().ToString(),
+        Name = "John Doe",
+        Year = 2
+    };
+    var response = await container.CreateItemAsync(student, new PartitionKey(student.id));
+    return Results.Ok(response.Resource);
+});
 
 app.Run();
 
-internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+
