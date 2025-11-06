@@ -1,0 +1,6 @@
+@fs_2025_b_api_cosmosdb_20251106_HostAddress = http://localhost:5044
+
+GET {{fs_2025_b_api_cosmosdb_20251106_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
